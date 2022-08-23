@@ -7,6 +7,7 @@ import { Task } from "../models/Task";
 import CloseIcon from "@mui/icons-material/Close";
 import CardActions from "@material-ui/core/CardActions";
 import IconButton from "@material-ui/core/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
 import { Draggable } from "@react-forked/dnd";
 
 const DragItem = styled.div` padding : 10px;
@@ -21,7 +22,8 @@ function ListItem(
   index: number,
   task: Task,
   color: string,
-  onRemove: Function
+  onRemove: Function,
+  onOpenEditDialog: Function
 ) {
   return (
     <Draggable key={task.id} draggableId={task.id} index={index}>
@@ -34,6 +36,9 @@ function ListItem(
           <DragItem>
             <Card style={{ backgroundColor: color }}>
               <CardActions disableSpacing style={{ float: "right" }}>
+                <IconButton onClick={() => onOpenEditDialog(task)}>
+                  <EditIcon />
+                </IconButton>
                 <IconButton onClick={() => onRemove()}>
                   <CloseIcon />
                 </IconButton>

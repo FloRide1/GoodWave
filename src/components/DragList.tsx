@@ -14,16 +14,23 @@ import { TaskList } from "../models/TaskList";
 import { TaskState } from "../models/TaskState";
 import ListItem from "./ListItem";
 
-function generateItem(i: number): Task {
+var id: number = 0;
+
+function generateItem(): Task {
+  id++;
   return {
-    id: Math.floor(Math.random() * 1500).toString(),
-    title: "title: " + i,
-    description: "lorem ipsum dolor",
-    state: TaskState.TODO,
+    id: id.toString(),
+    title: "New Task",
+    description: "No Description",
   };
 }
 
-function DragList(index: number, l: TaskList, onChange: Function) {
+function DragList(
+  index: number,
+  l: TaskList,
+  onChange: Function,
+  onOpenEditDialog: Function
+) {
   const [list, setList] = React.useState(l);
 
   const addToList = (index: number, e: Task) => {
@@ -56,8 +63,12 @@ function DragList(index: number, l: TaskList, onChange: Function) {
               <CardContent>
                 <List>
                   {list.items.map((e, i) => {
-                    return ListItem(i, e, list.frontColor, () =>
-                      removeFromList(i)
+                    return ListItem(
+                      i,
+                      e,
+                      list.frontColor,
+                      () => removeFromList(i),
+                      onOpenEditDialog
                     );
                   })}
                 </List>
@@ -65,10 +76,7 @@ function DragList(index: number, l: TaskList, onChange: Function) {
               <CardActions disableSpacing style={{ float: "right" }}>
                 <IconButton
                   onClick={() => {
-                    addToList(
-                      list.items.length,
-                      generateItem(list.items.length)
-                    );
+                    addToList(list.items.length, generateItem());
                   }}
                 >
                   <AddIcon />
