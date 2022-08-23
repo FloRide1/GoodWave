@@ -4,8 +4,10 @@ import { DragDropContext } from "@react-forked/dnd";
 import React from "react";
 import { useState } from "react";
 import DragList from "../components/DragList";
+import EditDialog from "../components/EditDialog";
 import { Task } from "../models/Task";
 import { TaskList } from "../models/TaskList";
+import { TaskState } from "../models/TaskState";
 
 const init_list: Array<TaskList> = [];
 
@@ -37,6 +39,12 @@ function Tasks() {
   // Object are passed by reference
   const [lists, setLists] = React.useState(init_list);
   const [render, rerender] = useState(false);
+  const dialogRef = React.useRef(null);
+
+  const onOpenEditDialog = (task: Task) => {
+    const temp: any = dialogRef.current;
+    temp.openDialog(task);
+  };
 
   const reorder = (list: Array<any>, startIndex: number, endIndex: number) => {
     const result = Array.from(list);
@@ -73,14 +81,34 @@ function Tasks() {
         source.index,
         destination.index
       );
-      setLists(lists);
     } else {
       const item = lists[sInd].items[source.index];
       lists[sInd].items = removeFromList(lists[sInd].items, source.index);
       lists[dInd].items = addToList(lists[dInd].items, destination.index, item);
-      setLists(lists);
     }
+
+    setLists(lists);
+    onChange();
   }
+
+  const onValidate = (t: Task) => {
+    let list_index = -1;
+    let item_index = -1;
+    lists.forEach((list: TaskList, list_i: number) => {
+      list.items.forEach((item: Task, item_i: number) => {
+        if (item.id === t.id) {
+          list_index = list_i;
+          item_index = item_i;
+        }
+      });
+    });
+
+    if (list_index !== -1 && item_index !== -1) {
+      lists[list_index].items[item_index] = t;
+      setLists(lists);
+      onChange();
+    }
+  };
 
   // But i still need to rerender the data from child components
   const onChange = () => {
@@ -88,13 +116,16 @@ function Tasks() {
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <DragDropContext onDragEnd={onDragEnd}>
-        {lists.map((e: TaskList, index: number) =>
-          DragList(index, e, onChange)
-        )}
-      </DragDropContext>
-    </Box>
+    <div>
+      <Box sx={{ display: "flex" }}>
+        <DragDropContext onDragEnd={onDragEnd}>
+          {lists.map((e: TaskList, index: number) =>
+            DragList(index, e, onChange, onOpenEditDialog)
+          )}
+        </DragDropContext>
+      </Box>
+      <EditDialog ref={dialogRef} onValidate={onValidate} />
+    </div>
   );
 }
 
