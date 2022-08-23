@@ -7,6 +7,7 @@ import Container from "@material-ui/core/Container";
 import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
 import AddIcon from "@mui/icons-material/Add";
+import { Droppable } from "@react-forked/dnd";
 import React from "react";
 import { Task } from "../models/Task";
 import { TaskList } from "../models/TaskList";
@@ -22,7 +23,7 @@ function generateItem(i: number): Task {
   };
 }
 
-function DragList(l: TaskList, onChange: Function) {
+function DragList(index: number, l: TaskList, onChange: Function) {
   const [list, setList] = React.useState(l);
 
   const addToList = (index: number, e: Task) => {
@@ -47,25 +48,37 @@ function DragList(l: TaskList, onChange: Function) {
 
   return (
     <Container maxWidth="sm">
-      <Card style={{ backgroundColor: list.backColor }}>
-        <CardHeader title={list.name} />
-        <CardContent>
-          <List>
-            {list.items.map((e, i) => {
-              return ListItem(e, list.frontColor, () => removeFromList(i));
-            })}
-          </List>
-        </CardContent>
-        <CardActions disableSpacing style={{ float: "right" }}>
-          <IconButton
-            onClick={() => {
-              addToList(list.items.length, generateItem(list.items.length));
-            }}
-          >
-            <AddIcon />
-          </IconButton>
-        </CardActions>
-      </Card>
+      <Droppable droppableId={`${index}`}>
+        {(provided) => (
+          <div ref={provided.innerRef} {...provided.droppableProps}>
+            <Card style={{ backgroundColor: list.backColor }}>
+              <CardHeader title={list.name} />
+              <CardContent>
+                <List>
+                  {list.items.map((e, i) => {
+                    return ListItem(i, e, list.frontColor, () =>
+                      removeFromList(i)
+                    );
+                  })}
+                </List>
+              </CardContent>
+              <CardActions disableSpacing style={{ float: "right" }}>
+                <IconButton
+                  onClick={() => {
+                    addToList(
+                      list.items.length,
+                      generateItem(list.items.length)
+                    );
+                  }}
+                >
+                  <AddIcon />
+                </IconButton>
+              </CardActions>
+            </Card>
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
     </Container>
   );
 }
