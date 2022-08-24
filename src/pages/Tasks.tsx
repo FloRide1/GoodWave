@@ -3,67 +3,25 @@ import Button from "@mui/material/Button";
 import { DragDropContext } from "@react-forked/dnd";
 import React from "react";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import DragList from "../components/DragList";
 import EditDialog from "../components/EditDialog";
 import { Task } from "../models/Task";
 import { TaskList } from "../models/TaskList";
 import { TaskState } from "../models/TaskState";
-
-const init_list: Array<TaskList> = [];
-
-// TODO
-init_list.push({
-  name: "TODO",
-  items: [],
-  frontColor: "tomato",
-  backColor: "firebrick",
-});
-
-// IN PROGRESS
-init_list.push({
-  name: "IN PROGRESS",
-  items: [],
-  frontColor: "orange",
-  backColor: "darkorange",
-});
-
-// DONE
-init_list.push({
-  name: "DONE",
-  items: [],
-  frontColor: "green",
-  backColor: "darkgreen",
-});
+import { AppDispatch, RootState } from "../redux/store";
+import { addTask, removeTask, reorderTask, setTask } from "../redux/taskSlice";
 
 function Tasks() {
-  // Object are passed by reference
-  const [lists, setLists] = React.useState(init_list);
-  const [render, rerender] = useState(false);
   const dialogRef = React.useRef(null);
+
+  //React Redux Hooks
+  const lists = useSelector((state: RootState) => state.task);
+  const dispatch = useDispatch<AppDispatch>();
 
   const onOpenEditDialog = (task: Task) => {
     const temp: any = dialogRef.current;
     temp.openDialog(task);
-  };
-
-  const reorder = (list: Array<any>, startIndex: number, endIndex: number) => {
-    const result = Array.from(list);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-
-    return result;
-  };
-
-  const addToList = (list: Array<Task>, index: number, e: Task) => {
-    const result = Array.from(list);
-    result.splice(index, 0, e);
-    return result;
-  };
-
-  const removeFromList = (list: Array<Task>, index: number) => {
-    const result = Array.from(list);
-    result.splice(index, 1);
-    return result;
   };
 
   function onDragEnd(result: any) {
@@ -76,22 +34,16 @@ function Tasks() {
 
     // Drop on the same list
     if (sInd === dInd) {
-      lists[sInd].items = reorder(
-        lists[sInd].items,
-        source.index,
-        destination.index
-      );
+      dispatch(reorderTask(sInd, source.index, destination.index));
     } else {
       const item = lists[sInd].items[source.index];
-      lists[sInd].items = removeFromList(lists[sInd].items, source.index);
-      lists[dInd].items = addToList(lists[dInd].items, destination.index, item);
+      dispatch(removeTask(sInd, source.index));
+      dispatch(addTask(dInd, destination.index, item));
     }
-
-    setLists(lists);
-    onChange();
   }
 
   const onValidate = (t: Task) => {
+    // Find corresponding index
     let list_index = -1;
     let item_index = -1;
     lists.forEach((list: TaskList, list_i: number) => {
@@ -103,16 +55,10 @@ function Tasks() {
       });
     });
 
+    // TODO: Add security
     if (list_index !== -1 && item_index !== -1) {
-      lists[list_index].items[item_index] = t;
-      setLists(lists);
-      onChange();
+      dispatch(setTask(list_index, item_index, t));
     }
-  };
-
-  // But i still need to rerender the data from child components
-  const onChange = () => {
-    rerender(!render);
   };
 
   return (
@@ -120,7 +66,7 @@ function Tasks() {
       <Box sx={{ display: "flex" }}>
         <DragDropContext onDragEnd={onDragEnd}>
           {lists.map((e: TaskList, index: number) =>
-            DragList(index, e, onChange, onOpenEditDialog)
+            DragList(index, onOpenEditDialog)
           )}
         </DragDropContext>
       </Box>
