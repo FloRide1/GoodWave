@@ -37,8 +37,14 @@ export default React.forwardRef((props: EditProps, ref) => {
 
   React.useImperativeHandle(ref, () => ({
     openDialog: (t: Task) => {
+      // Clone for avoiding read-only error
+      const new_task: Task = {
+        id: t.id,
+        title: t.title,
+        description: t.description,
+      };
       handleClickOpen();
-      setTask(t);
+      setTask(new_task);
       rerender(!render);
     },
   }));

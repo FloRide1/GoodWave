@@ -25,6 +25,8 @@ function ListItem(
   onRemove: Function,
   onOpenEditDialog: Function
 ) {
+
+
   return (
     <Draggable key={task.id} draggableId={task.id} index={index}>
       {(provided, snapshot) => (

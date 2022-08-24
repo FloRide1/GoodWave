@@ -9,65 +9,34 @@ import List from "@material-ui/core/List";
 import AddIcon from "@mui/icons-material/Add";
 import { Droppable } from "@react-forked/dnd";
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Task } from "../models/Task";
 import { TaskList } from "../models/TaskList";
 import { TaskState } from "../models/TaskState";
+import { AppDispatch, RootState } from "../redux/store";
+import { pushTask, removeTask } from "../redux/taskSlice";
 import ListItem from "./ListItem";
 
-var id: number = 0;
-
-function generateItem(): Task {
-  id++;
-  return {
-    id: id.toString(),
-    title: "New Task",
-    description: "No Description",
-  };
-}
-
-function DragList(
-  index: number,
-  l: TaskList,
-  onChange: Function,
-  onOpenEditDialog: Function
-) {
-  const [list, setList] = React.useState(l);
-
-  const addToList = (index: number, e: Task) => {
-    const result = Array.from(list.items);
-    result.splice(index, 0, e);
-
-    const cpy = list;
-    cpy.items = result;
-    setList(cpy);
-    onChange();
-  };
-
-  const removeFromList = (index: number) => {
-    const result = Array.from(list.items);
-    result.splice(index, 1);
-
-    const cpy = list;
-    cpy.items = result;
-    setList(cpy);
-    onChange();
-  };
+function DragList(index: number, onOpenEditDialog: Function) {
+  //React Redux Hooks
+  const lists = useSelector((state: RootState) => state.task);
+  const dispatch = useDispatch<AppDispatch>();
 
   return (
     <Container maxWidth="sm">
       <Droppable droppableId={`${index}`}>
         {(provided) => (
           <div ref={provided.innerRef} {...provided.droppableProps}>
-            <Card style={{ backgroundColor: list.backColor }}>
-              <CardHeader title={list.name} />
+            <Card style={{ backgroundColor: lists[index].backColor }}>
+              <CardHeader title={lists[index].name} />
               <CardContent>
                 <List>
-                  {list.items.map((e, i) => {
+                  {lists[index].items.map((e, i) => {
                     return ListItem(
                       i,
                       e,
-                      list.frontColor,
-                      () => removeFromList(i),
+                      lists[index].frontColor,
+                      () => dispatch(removeTask(index, i)),
                       onOpenEditDialog
                     );
                   })}
@@ -76,7 +45,7 @@ function DragList(
               <CardActions disableSpacing style={{ float: "right" }}>
                 <IconButton
                   onClick={() => {
-                    addToList(list.items.length, generateItem());
+                    dispatch(pushTask(index, "New Task", "No Description"));
                   }}
                 >
                   <AddIcon />
