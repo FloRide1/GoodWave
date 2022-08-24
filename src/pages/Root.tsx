@@ -22,7 +22,7 @@ function Root() {
   const [todoDescription, setTodoDescription] = useState("");
 
   //React Redux Hooks
-  const todoList = useSelector((state: RootState) => state);
+  const todoList = useSelector((state: RootState) => state.todo);
   const dispatch = useDispatch<AppDispatch>();
 
   //Rendering
